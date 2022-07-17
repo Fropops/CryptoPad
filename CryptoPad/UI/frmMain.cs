@@ -203,111 +203,105 @@ namespace CryptoPad
             return false;
         }
 
-        private void OpenText()
+        private void OpenFile(string fileName)
         {
             byte[] Data = null;
             EncryptedData TempFile = null;
-            if (!HasChange || SaveText(false, HasChange))
+            try
             {
-                if (dlgOpen.ShowDialog() == DialogResult.OK)
+                TempFile = Tools.FromXML<EncryptedData>(File.ReadAllText(fileName));
+                try
                 {
-                    try
+                    Data = Encryption.Decrypt(TempFile);
+                    Debug.WriteLine("Decrypted using parameterless provider");
+                }
+                catch
+                {
+                    Debug.WriteLine("Parameterless provider could not decrypt the file");
+                    if (TempFile.HasProvider(CryptoMode.RSA))
                     {
-                        TempFile = Tools.FromXML<EncryptedData>(File.ReadAllText(dlgOpen.FileName));
-                        try
+                        //Try all RSA keys until one succeeds
+                        foreach (var K in Settings.LoadRSAKeys().Where(m => RSAEncryption.HasPrivateKey(m.Key)))
                         {
-                            Data = Encryption.Decrypt(TempFile);
-                            Debug.WriteLine("Decrypted using parameterless provider");
-                        }
-                        catch
-                        {
-                            Debug.WriteLine("Parameterless provider could not decrypt the file");
-                            if (TempFile.HasProvider(CryptoMode.RSA))
+                            FileParams[CryptoMode.RSA] = K.Key;
+                            try
                             {
-                                //Try all RSA keys until one succeeds
-                                foreach (var K in Settings.LoadRSAKeys().Where(m => RSAEncryption.HasPrivateKey(m.Key)))
-                                {
-                                    FileParams[CryptoMode.RSA] = K.Key;
-                                    try
-                                    {
-                                        Data = Encryption.Decrypt(TempFile, FileParams);
-                                        Debug.WriteLine($"Decrypted using RSA provider and key: {K.Name}");
-                                        break;
-                                    }
-                                    catch
-                                    {
-                                        Debug.WriteLine($"Key failed: {K.Name}");
-                                        //Try next key
-                                    }
-                                }
-                                if (Data == null)
-                                {
-                                    Debug.WriteLine($"No RSA key could decrypt the content");
-                                    FileParams.Remove(CryptoMode.RSA);
-                                }
+                                Data = Encryption.Decrypt(TempFile, FileParams);
+                                Debug.WriteLine($"Decrypted using RSA provider and key: {K.Name}");
+                                break;
                             }
-                            if (Data == null)
+                            catch
                             {
-                                if (TempFile.HasProvider(CryptoMode.Keyfile) || TempFile.HasProvider(CryptoMode.Password))
+                                Debug.WriteLine($"Key failed: {K.Name}");
+                                //Try next key
+                            }
+                        }
+                        if (Data == null)
+                        {
+                            Debug.WriteLine($"No RSA key could decrypt the content");
+                            FileParams.Remove(CryptoMode.RSA);
+                        }
+                    }
+                    if (Data == null)
+                    {
+                        if (TempFile.HasProvider(CryptoMode.Keyfile) || TempFile.HasProvider(CryptoMode.Password))
+                        {
+                            using (var pwd = new frmCryptoInput(TempFile.AllModes, null))
+                            {
+                                if (pwd.ShowDialog() == DialogResult.OK)
                                 {
-                                    using (var pwd = new frmCryptoInput(TempFile.AllModes, null))
+                                    if (pwd.ValidInput)
                                     {
-                                        if (pwd.ShowDialog() == DialogResult.OK)
+                                        if (!string.IsNullOrEmpty(pwd.Password))
                                         {
-                                            if (pwd.ValidInput)
+                                            FileParams[CryptoMode.Password] = pwd.Password;
+                                        }
+                                        if (!string.IsNullOrEmpty(pwd.Keyfile))
+                                        {
+                                            if (File.Exists(pwd.Keyfile))
                                             {
-                                                if (!string.IsNullOrEmpty(pwd.Password))
-                                                {
-                                                    FileParams[CryptoMode.Password] = pwd.Password;
-                                                }
-                                                if (!string.IsNullOrEmpty(pwd.Keyfile))
-                                                {
-                                                    if (File.Exists(pwd.Keyfile))
-                                                    {
-                                                        FileParams[CryptoMode.Password] = pwd.Keyfile;
-                                                    }
-                                                    else
-                                                    {
-                                                        Program.ErrorMsg("Invalid key file selected");
-                                                    }
-                                                }
-                                                if (FileParams.Count > 0)
-                                                {
-                                                    try
-                                                    {
-                                                        Data = Encryption.Decrypt(TempFile, FileParams);
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        Program.ErrorMsg($"Unable to decrypt the file using the supplied data. Invalid key file or password?\r\n{ex.Message}");
-                                                    }
-                                                }
+                                                FileParams[CryptoMode.Password] = pwd.Keyfile;
                                             }
                                             else
                                             {
-                                                Program.ErrorMsg("You need to provide at least one of the offered options to decrypt the file.");
+                                                Program.ErrorMsg("Invalid key file selected");
+                                            }
+                                        }
+                                        if (FileParams.Count > 0)
+                                        {
+                                            try
+                                            {
+                                                Data = Encryption.Decrypt(TempFile, FileParams);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Program.ErrorMsg($"Unable to decrypt the file using the supplied data. Invalid key file or password?\r\n{ex.Message}");
                                             }
                                         }
                                     }
-                                }
-                                else if (TempFile.HasProvider(CryptoMode.RSA))
-                                {
-                                    Program.AlertMsg(
-                                        "The file is encrypted using RSA but none of your keys can decrypt it.\r\n" +
-                                        "Please add the matching RSA private key to the key store using the \"Tools >> Options\" Menu");
-                                }
-                                else
-                                {
-                                    Program.ErrorMsg("Failed to decrypt the data.");
+                                    else
+                                    {
+                                        Program.ErrorMsg("You need to provide at least one of the offered options to decrypt the file.");
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch
-                    {
-                        Program.ErrorMsg("Unable to open the specified file. It's not a valid encrypted text document");
+                        else if (TempFile.HasProvider(CryptoMode.RSA))
+                        {
+                            Program.AlertMsg(
+                                "The file is encrypted using RSA but none of your keys can decrypt it.\r\n" +
+                                "Please add the matching RSA private key to the key store using the \"Tools >> Options\" Menu");
+                        }
+                        else
+                        {
+                            Program.ErrorMsg("Failed to decrypt the data.");
+                        }
                     }
                 }
+            }
+            catch
+            {
+                Program.ErrorMsg("Unable to open the specified file. It's not a valid encrypted text document");
             }
             //Open the selected file, provided it could be decrypted
             if (Data != null)
@@ -317,6 +311,26 @@ namespace CryptoPad
                 BaseContent = tbEditor.Text = Encoding.UTF8.GetString(Data);
                 UpdateStatus();
             }
+        }
+
+        private void OpenText()
+        {
+            if (!HasChange || SaveText(false, HasChange))
+            {
+                if (dlgOpen.ShowDialog() == DialogResult.OK)
+                {
+                    OpenFile(dlgOpen.FileName);
+                }
+            }
+
+            ////Open the selected file, provided it could be decrypted
+            //if (Data != null)
+            //{
+            //    FileName = dlgOpen.FileName;
+            //    CurrentFile = TempFile;
+            //    BaseContent = tbEditor.Text = Encoding.UTF8.GetString(Data);
+            //    UpdateStatus();
+            //}
         }
 
         private void tbEditor_TextChanged(object sender, EventArgs e)
@@ -602,6 +616,22 @@ namespace CryptoPad
             {
                 frm.ShowDialog();
             }
+        }
+
+        private void tbEditor_DragDrop(object sender, DragEventArgs e)
+        {
+            var dropped = ((string[])e.Data.GetData(DataFormats.FileDrop));
+            var files = dropped.ToList();
+
+            if (!files.Any())
+                return;
+
+            OpenFile(files.First());
+        }
+
+        private void tbEditor_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
         }
     }
 }

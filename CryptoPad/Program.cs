@@ -20,7 +20,7 @@ namespace CryptoPad
                 BlockPortable = true,
                 MinimumRsaSize = 2048
             };
-            Settings.SaveSettings(SettingsType.Global);
+            Settings.SaveSettings(SettingsType.Portable);
 #endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
