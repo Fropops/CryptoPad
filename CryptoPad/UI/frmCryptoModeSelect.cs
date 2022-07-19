@@ -67,33 +67,34 @@ namespace CryptoPad
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            Modes = 0;
-            if (!string.IsNullOrEmpty(tbPassword.Text) && cbPassword.Checked)
-            {
+            //Modes = 0;
+            //if (!string.IsNullOrEmpty(tbPassword.Text) && cbPassword.Checked)
+            //{
                 Password = tbPassword.Text;
-                Modes |= CryptoMode.Password;
-            }
-            if (!string.IsNullOrEmpty(tbKeyfile.Text) && cbKeyfile.Checked)
-            {
-                Keyfile = tbKeyfile.Text;
-                Modes |= CryptoMode.Keyfile;
-            }
-            if (RsaKey != null && cbRSA.Checked)
-            {
-                Modes |= CryptoMode.RSA;
-            }
-            else
-            {
-                RsaKey = null;
-            }
-            if (cbUserAccount.Checked)
-            {
-                Modes |= CryptoMode.CryptUser;
-            }
-            if (cbComputerAccount.Checked)
-            {
-                Modes |= CryptoMode.CryptMachine;
-            }
+            //    Modes |= CryptoMode.Password;
+            //}
+            //if (!string.IsNullOrEmpty(tbKeyfile.Text) && cbKeyfile.Checked)
+            //{
+            //    Keyfile = tbKeyfile.Text;
+            //    Modes |= CryptoMode.Keyfile;
+            //}
+            //if (RsaKey != null && cbRSA.Checked)
+            //{
+            //    Modes |= CryptoMode.RSA;
+            //}
+            //else
+            //{
+            //    RsaKey = null;
+            //}
+            //if (cbUserAccount.Checked)
+            //{
+            //    Modes |= CryptoMode.CryptUser;
+            //}
+            //if (cbComputerAccount.Checked)
+            //{
+            //    Modes |= CryptoMode.CryptMachine;
+            //}
+            Modes |= CryptoMode.Password;
         }
 
         private void btnRsaSelect_Click(object sender, EventArgs e)
@@ -138,6 +139,11 @@ namespace CryptoPad
         private void cbRSA_CheckedChanged(object sender, EventArgs e)
         {
             lblRsaName.Enabled = btnRsaSelect.Enabled = cbRSA.Checked;
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

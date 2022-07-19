@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmCryptoInput));
             this.lblDesc = new System.Windows.Forms.Label();
             this.btnKeyfile = new System.Windows.Forms.Button();
             this.cbKeyfile = new System.Windows.Forms.CheckBox();
@@ -178,6 +179,7 @@
             this.Controls.Add(this.btnKeyfile);
             this.Controls.Add(this.lblDesc);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "frmCryptoInput";

@@ -32,7 +32,7 @@ namespace CryptoPad
             }
         }
 
-        public frmMain()
+        public frmMain(string[] args)
         {
             InitializeComponent();
 
@@ -75,6 +75,13 @@ namespace CryptoPad
             {
                 tbEditor.Font = dlgFont.Font;
             };
+
+
+            if(args != null && args.Length > 0)
+            {
+                var fileName = args[0];
+                OpenFile(fileName);
+            }
         }
 
         public void UpdateStatus()
@@ -137,29 +144,29 @@ namespace CryptoPad
                     {
                         if (dlgCrypt.ShowDialog() == DialogResult.OK)
                         {
-                            if (dlgCrypt.Modes == 0 && GS.Restrictions.AutoRsaKeys.Length == 0)
-                            {
-                                Program.ErrorMsg("Please select at least one mode of encryption");
-                                return false;
-                            }
+                        //    if (dlgCrypt.Modes == 0 && GS.Restrictions.AutoRsaKeys.Length == 0)
+                        //    {
+                        //        Program.ErrorMsg("Please select at least one mode of encryption");
+                        //        return false;
+                        //    }
                             var Params = new Dictionary<CryptoMode, object>();
-                            if (dlgCrypt.Modes.HasFlag(CryptoMode.Password))
-                            {
+                            //if (dlgCrypt.Modes.HasFlag(CryptoMode.Password))
+                            //{
                                 Params[CryptoMode.Password] = dlgCrypt.Password;
-                            }
-                            if (dlgCrypt.Modes.HasFlag(CryptoMode.Keyfile))
-                            {
-                                Params[CryptoMode.Keyfile] = dlgCrypt.Keyfile;
-                            }
-                            if (dlgCrypt.Modes.HasFlag(CryptoMode.RSA) || GS.Restrictions.AutoRsaKeys.Length > 0)
-                            {
-                                var RsaList = new List<RSAParameters>(GS.Restrictions.AutoRsaKeys.Select(m => m.Key));
-                                if (dlgCrypt.Modes.HasFlag(CryptoMode.RSA))
-                                {
-                                    RsaList.Add(dlgCrypt.RsaKey.Key);
-                                }
-                                Params[CryptoMode.RSA] = RsaList;
-                            }
+                            //}
+                            //if (dlgCrypt.Modes.HasFlag(CryptoMode.Keyfile))
+                            //{
+                            //    Params[CryptoMode.Keyfile] = dlgCrypt.Keyfile;
+                            //}
+                            //if (dlgCrypt.Modes.HasFlag(CryptoMode.RSA) || GS.Restrictions.AutoRsaKeys.Length > 0)
+                            //{
+                            //    var RsaList = new List<RSAParameters>(GS.Restrictions.AutoRsaKeys.Select(m => m.Key));
+                            //    if (dlgCrypt.Modes.HasFlag(CryptoMode.RSA))
+                            //    {
+                            //        RsaList.Add(dlgCrypt.RsaKey.Key);
+                            //    }
+                            //    Params[CryptoMode.RSA] = RsaList;
+                            //}
 
                             try
                             {
@@ -306,7 +313,7 @@ namespace CryptoPad
             //Open the selected file, provided it could be decrypted
             if (Data != null)
             {
-                FileName = dlgOpen.FileName;
+                FileName = fileName;
                 CurrentFile = TempFile;
                 BaseContent = tbEditor.Text = Encoding.UTF8.GetString(Data);
                 UpdateStatus();
@@ -463,29 +470,29 @@ namespace CryptoPad
                 {
                     if (dlgModes.ShowDialog() == DialogResult.OK)
                     {
-                        if (dlgModes.Modes == 0)
-                        {
-                            Program.ErrorMsg("Please select at least one mode of encryption");
-                        }
-                        else
-                        {
-                            var Params = new Dictionary<CryptoMode, object>();
-                            if (dlgModes.Modes.HasFlag(CryptoMode.Password))
-                            {
+                        //if (dlgModes.Modes == 0)
+                        //{
+                        //    Program.ErrorMsg("Please select at least one mode of encryption");
+                        //}
+                        //else
+                        //{
+                              var Params = new Dictionary<CryptoMode, object>();
+                        //    if (dlgModes.Modes.HasFlag(CryptoMode.Password))
+                        //    {
                                 Params[CryptoMode.Password] = dlgModes.Password;
-                            }
-                            if (dlgModes.Modes.HasFlag(CryptoMode.Keyfile))
-                            {
-                                Params[CryptoMode.Keyfile] = dlgModes.Keyfile;
-                            }
-                            if (dlgModes.Modes.HasFlag(CryptoMode.RSA))
-                            {
-                                Params[CryptoMode.RSA] = dlgModes.RsaKey.Key;
-                            }
+                            //}
+                            //if (dlgModes.Modes.HasFlag(CryptoMode.Keyfile))
+                            //{
+                            //    Params[CryptoMode.Keyfile] = dlgModes.Keyfile;
+                            //}
+                            //if (dlgModes.Modes.HasFlag(CryptoMode.RSA))
+                            //{
+                            //    Params[CryptoMode.RSA] = dlgModes.RsaKey.Key;
+                            //}
                             try
                             {
                                 CurrentFile = Encryption.Encrypt(dlgModes.Modes, Encoding.UTF8.GetBytes(tbEditor.Text), Params);
-                                if (Program.InfoMsg("The cryptographic modes were changed. Save the file now?", true) == DialogResult.Yes)
+                                if (Program.InfoMsg("The password waas changed. Save the file now?", true) == DialogResult.Yes)
                                 {
                                     SaveText(false, false);
                                 }
@@ -494,7 +501,7 @@ namespace CryptoPad
                             {
                                 Program.ErrorMsg($"Unable to encrypt your file.\r\n{ex.Message}");
                             }
-                        }
+                        //}
                     }
                 }
             }
@@ -583,7 +590,9 @@ namespace CryptoPad
 
         private void HelpAction_Click(object sender, EventArgs e)
         {
-            Program.InfoMsg("The help is not available yet. You can mostly use this application like a regular text editor.");
+            Program.InfoMsg(@"A simple, encrypted text editor
+
+Forked from https://github.com/AyrA/CryptoPad and customized to fit my needs.");
         }
 
         #endregion

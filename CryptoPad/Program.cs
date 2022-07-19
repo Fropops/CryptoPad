@@ -9,7 +9,7 @@ namespace CryptoPad
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
 #if DEBUG
             var Settings = AppSettings.GetSettings();
@@ -24,7 +24,7 @@ namespace CryptoPad
 #endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmMain());
+            Application.Run(new frmMain(args));
         }
 
         /// <summary>
